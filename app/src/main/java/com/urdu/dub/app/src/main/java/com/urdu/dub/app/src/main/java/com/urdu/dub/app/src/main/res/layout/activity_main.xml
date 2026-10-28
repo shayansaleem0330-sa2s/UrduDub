@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0B0B0F">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView android:text="UrduDub"
+            android:textColor="#FFFFFF" android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:text="English trading video — apni zaban mein, ICT terms English mein."
+            android:textColor="#9AA0A6" android:textSize="13sp"
+            android:paddingTop="4dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:text="Zaban" android:textColor="#E8EAED"
+            android:paddingTop="18dp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <Spinner android:id="@+id/langSpin"
+            android:background="#14141A"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:text="Awaaz" android:textColor="#E8EAED"
+            android:paddingTop="14dp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <Spinner android:id="@+id/voiceSpin"
+            android:background="#14141A"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:text="Gemini API key" android:textColor="#E8EAED"
+            android:paddingTop="14dp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <EditText android:id="@+id/apiKey" android:hint="AIza..."
+            android:textColor="#FFFFFF" android:textColorHint="#5F6368"
+            android:inputType="text"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <CheckBox android:id="@+id/duck" android:checked="true"
+            android:text="Original audio halka karo"
+            android:textColor="#E8EAED" android:paddingTop="14dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:text="Dub ki awaaz" android:textColor="#E8EAED"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <SeekBar android:id="@+id/dubVol" android:max="100" android:progress="100"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <Button android:id="@+id/button" android:text="Dubbing shuru karo"
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:id="@+id/status" android:text="Band hai"
+            android:textColor="#8AB4F8" android:paddingTop="14dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView android:text="Live transcript" android:textColor="#9AA0A6"
+            android:paddingTop="18dp"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+        <TextView android:id="@+id/transcript" android:text=""
+            android:textColor="#E8EAED" android:textSize="15sp"
+            android:paddingTop="6dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>
