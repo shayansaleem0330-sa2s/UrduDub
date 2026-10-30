@@ -77,7 +77,12 @@ class DubService : Service() {
         val p = getSharedPreferences("cfg", MODE_PRIVATE)
         val apiKey = p.getString("apiKey", "") ?: ""
         val lang = Config.LANGUAGES[p.getInt("langIdx", 0)]
-        val voice = Config.voiceId(Config.VOICES[p.getInt("voiceIdx", 0)])
+        val code = when {
+            lang.startsWith("Urdu") -> "ur"
+            lang.startsWith("Hindi") -> "hi"
+            lang.startsWith("Punjabi") -> "pa"
+            else -> "en"
+        }
 
         val outFormat = AudioFormat.Builder()
             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
@@ -100,8 +105,7 @@ class DubService : Service() {
 
         live = GeminiLive(
             apiKey = apiKey,
-            voiceName = voice,
-            systemPrompt = Config.systemPrompt(lang),
+            targetLangCode = code,
             onReady = { startCapture() },
             onAudio = { pcm ->
                 track?.let { t -> t.setVolume(dubVolume); t.write(pcm, 0, pcm.size) }
