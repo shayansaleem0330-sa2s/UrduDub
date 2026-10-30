@@ -8,8 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class GeminiLive(
     private val apiKey: String,
-    private val voiceName: String,
-    private val systemPrompt: String,
+    private val targetLangCode: String,
     private val onReady: () -> Unit,
     private val onAudio: (ByteArray) -> Unit,
     private val onText: (String) -> Unit,
@@ -46,25 +45,29 @@ class GeminiLive(
     }
 
     private fun setupJson(): JSONObject {
-        val voice = JSONObject().put("prebuiltVoiceConfig",
-            JSONObject().put("voiceName", voiceName))
         val gen = JSONObject()
             .put("responseModalities", JSONArray().put("AUDIO"))
-            .put("speechConfig", JSONObject().put("voiceConfig", voice))
+            .put("inputAudioTranscription", JSONObject())
+            .put("outputAudioTranscription", JSONObject())
+            .put("translationConfig", JSONObject()
+                .put("targetLanguageCode", targetLangCode)
+                .put("echoTargetLanguage", true))
 
         val setup = JSONObject()
             .put("model", "models/${Config.MODEL}")
             .put("generationConfig", gen)
-            .put("systemInstruction", JSONObject().put("parts",
-                JSONArray().put(JSONObject().put("text", systemPrompt))))
-            .put("inputAudioTranscription", JSONObject())
-            .put("outputAudioTranscription", JSONObject())
 
         return JSONObject().put("setup", setup)
     }
 
     private fun handle(text: String) {
         val json = JSONObject(text)
+
+        if (json.has("error")) {
+            onError(json.optJSONObject("error")?.optString("message") ?: "error")
+            return
+        }
+
         if (json.has("setupComplete")) { ready = true; onReady(); return }
 
         val sc = json.optJSONObject("serverContent") ?: return
