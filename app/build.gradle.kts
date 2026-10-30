@@ -31,7 +31,4 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
-    // 👇 Ye line nahi thi, ab ye add ho gayi hai:
-    implementation("androidx.tts:tts:1.0.0")
 }
