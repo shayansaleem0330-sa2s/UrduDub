@@ -37,6 +37,7 @@ class DubService : Service() {
     private var am: AudioManager? = null
     private val focusListener = AudioManager.OnAudioFocusChangeListener { }
     @Volatile private var capturing = false
+    private var savedMusicVol = -1
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -60,11 +61,16 @@ class DubService : Service() {
         val duck = intent?.getBooleanExtra(EXTRA_DUCK, true) ?: true
 
         if (duck) {
-            am?.requestAudioFocus(
-                focusListener,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
-            )
+            am?.requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            if (Build.VERSION.SDK_INT >= 31) {
+                runCatching {
+                    am?.setStreamVolume(AudioManager.STREAM_ASSISTANT,
+                        am!!.getStreamMaxVolume(AudioManager.STREAM_ASSISTANT), 0)
+                    savedMusicVol = am!!.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    am!!.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+                }
+            }
         }
 
         val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -110,7 +116,7 @@ class DubService : Service() {
             onAudio = { pcm ->
                 track?.let { t -> t.setVolume(dubVolume); t.write(pcm, 0, pcm.size) }
             },
-            onText = { lastText = it },
+            onText = { lastText = Roman.toRoman(it) },
             onError = { lastText = "Error: $it" }
         ).also { it.connect() }
     }
@@ -159,6 +165,10 @@ class DubService : Service() {
         live?.close(); live = null
         runCatching { projection?.stop() }; projection = null
         am?.abandonAudioFocus(focusListener)
+        if (savedMusicVol >= 0) {
+            runCatching { am?.setStreamVolume(AudioManager.STREAM_MUSIC, savedMusicVol, 0) }
+            savedMusicVol = -1
+        }
         isRunning = false
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
