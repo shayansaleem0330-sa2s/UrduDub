@@ -24,6 +24,7 @@ class DubService : Service() {
         const val NOTIF_ID = 42
         const val SR_IN = 16000
         const val SR_OUT = 24000
+        const val STREAM_ASSISTANT = 11
 
         @Volatile var isRunning = false
         @Volatile var lastText = ""
@@ -65,8 +66,8 @@ class DubService : Service() {
                 AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
             if (Build.VERSION.SDK_INT >= 31) {
                 runCatching {
-                    am?.setStreamVolume(AudioManager.STREAM_ASSISTANT,
-                        am!!.getStreamMaxVolume(AudioManager.STREAM_ASSISTANT), 0)
+                    am?.setStreamVolume(STREAM_ASSISTANT,
+                        am!!.getStreamMaxVolume(STREAM_ASSISTANT), 0)
                     savedMusicVol = am!!.getStreamVolume(AudioManager.STREAM_MUSIC)
                     am!!.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                 }
