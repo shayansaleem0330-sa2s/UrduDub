@@ -47,7 +47,7 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
         <CheckBox android:id="@+id/duck" android:checked="true"
-            android:text="Original audio halka karo"
+            android:text="Original audio mute karo"
             android:textColor="#E8EAED" android:paddingTop="14dp"
             android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
