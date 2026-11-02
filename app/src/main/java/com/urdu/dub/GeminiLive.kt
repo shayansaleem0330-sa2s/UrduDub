@@ -29,17 +29,19 @@ class GeminiLive(
 
         ws = client.newWebSocket(req, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
+                onText("[1] socket khula, setup bhej raha hoon")
                 webSocket.send(setupJson().toString())
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
-                try { handle(text) } catch (e: Exception) { onError(e.message ?: "parse") }
+                try { handle(text) } catch (e: Exception) { onError("parse: ${e.message}") }
             }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 ready = false
-                onError(t.message ?: "websocket failed")
+                onError("socket fail: ${t.message} / code=${response?.code}")
             }
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 ready = false
+                onText("socket band: $code $reason")
             }
         })
     }
@@ -64,11 +66,16 @@ class GeminiLive(
         val json = JSONObject(text)
 
         if (json.has("error")) {
-            onError(json.optJSONObject("error")?.optString("message") ?: "error")
+            onError("API: " + json.optJSONObject("error")?.optString("message"))
             return
         }
 
-        if (json.has("setupComplete")) { ready = true; onReady(); return }
+        if (json.has("setupComplete")) {
+            ready = true
+            onText("[2] connected — capture shuru")
+            onReady()
+            return
+        }
 
         val sc = json.optJSONObject("serverContent") ?: return
 
