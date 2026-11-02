@@ -70,9 +70,10 @@ class DubService : Service() {
                 runCatching {
                     am?.setStreamVolume(STREAM_ASSISTANT,
                         am!!.getStreamMaxVolume(STREAM_ASSISTANT), 0)
-                    savedMusicVol = am!!.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    am!!.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
                 }
+                savedMusicVol = am?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: -1
+                runCatching { am?.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0) }
+            }
             }
         }
 
