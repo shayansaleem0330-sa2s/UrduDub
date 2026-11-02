@@ -2,6 +2,7 @@ package com.urdu.dub
 
 import android.util.Base64
 import okhttp3.*
+import okio.ByteString
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
@@ -15,7 +16,7 @@ class GeminiLive(
     private val onError: (String) -> Unit
 ) {
     private val client = OkHttpClient.Builder()
-        .pingInterval(20, TimeUnit.SECONDS)
+        .pingInterval(30, TimeUnit.SECONDS)
         .build()
 
     @Volatile private var ws: WebSocket? = null
@@ -32,13 +33,20 @@ class GeminiLive(
                 onText("[1] socket khula, setup bhej raha hoon")
                 webSocket.send(setupJson().toString())
             }
+
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try { handle(text) } catch (e: Exception) { onError("parse: ${e.message}") }
             }
+
+            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                try { handle(bytes.utf8()) } catch (e: Exception) { onError("parse: ${e.message}") }
+            }
+
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 ready = false
                 onError("socket fail: ${t.message} / code=${response?.code}")
             }
+
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 ready = false
                 onText("socket band: $code $reason")
