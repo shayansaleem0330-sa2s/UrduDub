@@ -39,6 +39,8 @@ class DubService : Service() {
     private val focusListener = AudioManager.OnAudioFocusChangeListener { }
     @Volatile private var capturing = false
     private var savedMusicVol = -1
+    private var gotAudio = false
+    private var chunks = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -91,71 +93,95 @@ class DubService : Service() {
             else -> "en"
         }
 
-        val outFormat = AudioFormat.Builder()
-            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-            .setSampleRate(SR_OUT)
-            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-            .build()
-        val outAttrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANT)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-            .build()
-        track = AudioTrack.Builder()
-            .setAudioAttributes(outAttrs)
-            .setAudioFormat(outFormat)
-            .setBufferSizeInBytes(
-                AudioTrack.getMinBufferSize(SR_OUT,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT) * 2)
-            .setTransferMode(AudioTrack.MODE_STREAM)
-            .build().also { it.play() }
+        try {
+            val outFormat = AudioFormat.Builder()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(SR_OUT)
+                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                .build()
+            val outAttrs = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANT)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .build()
+            track = AudioTrack.Builder()
+                .setAudioAttributes(outAttrs)
+                .setAudioFormat(outFormat)
+                .setBufferSizeInBytes(
+                    AudioTrack.getMinBufferSize(SR_OUT,
+                        AudioFormat.CHANNEL_OUT_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT) * 2)
+                .setTransferMode(AudioTrack.MODE_STREAM)
+                .build().also { it.play() }
+        } catch (e: Exception) {
+            lastText = "AudioTrack error: ${e.message}"
+            return
+        }
+
+        if (apiKey.length < 20) {
+            lastText = "API key khali ya galat lagti hai (${apiKey.length} chars)"
+        } else {
+            lastText = "connect kar raha hoon..."
+        }
 
         live = GeminiLive(
             apiKey = apiKey,
             targetLangCode = code,
             onReady = { startCapture() },
             onAudio = { pcm ->
+                if (!gotAudio) { gotAudio = true; lastText = "[3] AUDIO MIL RAHI HAI" }
                 track?.let { t -> t.setVolume(dubVolume); t.write(pcm, 0, pcm.size) }
             },
-            onText = { lastText = Roman.toRoman(it) },
+            onText = { if (!gotAudio) lastText = it },
             onError = { lastText = "Error: $it" }
         ).also { it.connect() }
     }
 
     private fun startCapture() {
         if (capturing) return
-        val proj = projection ?: return
+        try {
+            val proj = projection ?: return
 
-        val capConfig = AudioPlaybackCaptureConfiguration.Builder(proj)
-            .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-            .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
-            .addMatchingUsage(AudioAttributes.USAGE_GAME)
-            .build()
+            val capConfig = AudioPlaybackCaptureConfiguration.Builder(proj)
+                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+                .addMatchingUsage(AudioAttributes.USAGE_GAME)
+                .build()
 
-        val format = AudioFormat.Builder()
-            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-            .setSampleRate(SR_IN)
-            .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
-            .build()
+            val format = AudioFormat.Builder()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(SR_IN)
+                .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                .build()
 
-        val minBuf = AudioRecord.getMinBufferSize(
-            SR_IN, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
+            val minBuf = AudioRecord.getMinBufferSize(
+                SR_IN, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
 
-        val rec = AudioRecord.Builder()
-            .setAudioFormat(format)
-            .setBufferSizeInBytes(minBuf * 2)
-            .setAudioPlaybackCaptureConfig(capConfig)
-            .build()
-        record = rec
-        rec.startRecording()
-        capturing = true
+            val rec = AudioRecord.Builder()
+                .setAudioFormat(format)
+                .setBufferSizeInBytes(minBuf * 2)
+                .setAudioPlaybackCaptureConfig(capConfig)
+                .build()
+            record = rec
+            rec.startRecording()
+            capturing = true
 
-        thread(name = "capture") {
-            val buf = ByteArray(minBuf)
-            while (capturing) {
-                val n = rec.read(buf, 0, buf.size)
-                if (n > 0) live?.sendAudio(buf.copyOf(n))
+            if (!gotAudio) lastText = "capture chalu — YouTube mein video chalao"
+
+            thread(name = "capture") {
+                val buf = ByteArray(minBuf)
+                while (capturing) {
+                    val n = rec.read(buf, 0, buf.size)
+                    if (n > 0) {
+                        chunks++
+                        if (!gotAudio && chunks % 40L == 0L) {
+                            lastText = "audio bhej raha hoon ($chunks chunks) — jawab ka intezar"
+                        }
+                        live?.sendAudio(buf.copyOf(n))
+                    }
+                }
             }
+        } catch (e: Exception) {
+            lastText = "Capture error: ${e.message}"
         }
     }
 
