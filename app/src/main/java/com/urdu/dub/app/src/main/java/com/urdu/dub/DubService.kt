@@ -73,10 +73,8 @@ class DubService : Service() {
                 }
                 savedMusicVol = am?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: -1
                 runCatching { am?.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0) }
-            }
-            }
+       }
         }
-
         val mpm = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val proj = mpm.getMediaProjection(resultCode, data) ?: return
         projection = proj
