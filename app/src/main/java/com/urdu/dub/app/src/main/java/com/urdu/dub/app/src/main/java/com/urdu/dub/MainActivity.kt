@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         setupSpinner(langSpin, Config.LANGUAGES, "langIdx")
         setupSpinner(voiceSpin, Config.VOICES, "voiceIdx")
 
-        apiKey.setText(prefs.getString("apiKey", ""))
+        apiKey.setText(Config.API_KEY)
 
         vol.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
