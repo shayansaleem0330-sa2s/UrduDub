@@ -83,7 +83,8 @@ class DubService : Service() {
         }, null)
 
         val p = getSharedPreferences("cfg", MODE_PRIVATE)
-        val apiKey = p.getString("apiKey", "") ?: ""
+        val stored = (p.getString("apiKey", "") ?: "").trim()
+        val apiKey = if (stored.startsWith("AQ.") || stored.startsWith("AIza")) stored else Config.API_KEY
         val lang = Config.LANGUAGES[p.getInt("langIdx", 0)]
         val code = when {
             lang.startsWith("Urdu") -> "ur"
