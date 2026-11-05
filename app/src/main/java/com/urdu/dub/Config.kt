@@ -3,7 +3,7 @@ package com.urdu.dub
 object Config {
 
     const val MODEL = "gemini-3.5-live-translate-preview"
-
+const val API_KEY = "AQ.Ab8RN6KK-1yuSy0R4CJfSDdVprckKIaTpGpw_UvmEnM-_tmimQ"
     // Zaban options
     val LANGUAGES = listOf("Urdu (Karachi)", "Hindi", "English", "Punjabi")
 
